@@ -917,7 +917,7 @@ async function main() {
     let pdfUrls: string[] = [];
     for (let element of elements) {
         let pdfUrl = new urlparser.URL(element.attribs.href, DevelopmentApplicationsUrl).href
-        if (pdfUrl.toLowerCase().includes("register") && pdfUrl.toLowerCase().includes(".pdf"))
+        if (pdfUrl.toLowerCase().includes(".pdf"))
             if (!pdfUrls.some(url => url === pdfUrl))
                 pdfUrls.push(pdfUrl);
     }
