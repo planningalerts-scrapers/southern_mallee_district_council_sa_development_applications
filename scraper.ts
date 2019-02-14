@@ -178,9 +178,9 @@ function findElement(elements: Element[], text: string, shouldSelectRightmostEle
 
             let currentText = rightElements.map(element => element.text).join("").replace(/[\s,\-_]/g, "").toLowerCase();
 
-            if (currentText.length > text.length + 2)  // stop once the text is too long
+            if (currentText.length > condensedText.length + 2)  // stop once the text is too long
                 break;
-            if (currentText.length >= text.length - 2) {  // ignore until the text is close to long enough
+            if (currentText.length >= condensedText.length - 2) {  // ignore until the text is close to long enough
                 if (currentText === condensedText)
                     matches.push({ leftElement: rightElements[0], rightElement: rightElement, threshold: 0, text: currentText });
                 else if (didYouMean(currentText, [ condensedText ], { caseSensitive: false, returnType: didyoumean.ReturnTypeEnums.FIRST_CLOSEST_MATCH, thresholdType: didyoumean.ThresholdTypeEnums.EDIT_DISTANCE, threshold: 1, trimSpaces: true }) !== null)
@@ -397,7 +397,7 @@ function getDownText(elements: Element[], topText: string, rightText: string, bo
 
 function formatAddress(houseNumber: string, streetName: string, suburbName: string) {
     suburbName = suburbName.replace(/^HD /, "").replace(/ HD$/, "").replace(/ SA$/, "").trim();
-    suburbName = SuburbNames[suburbName] || suburbName;
+    suburbName = SuburbNames[suburbName.toUpperCase()] || suburbName;
     let separator = ((houseNumber !== "" || streetName !== "") && suburbName !== "") ? ", " : "";
     return `${houseNumber} ${streetName}${separator}${suburbName}`.trim().replace(/\s\s+/g, " ").toUpperCase().replace(/\*/g, "");
 }
@@ -544,7 +544,7 @@ function parseAddress(houseNumber: string, streetName: string, suburbName: strin
 
             // Check whether the street name is actually a hundred name such as "BARUNGA HD".
 
-            if (streetName.endsWith(" HD")) { // very likely a hundred name
+            if (streetName.endsWith(" HD") || streetName.toUpperCase().endsWith(" HUNDRED")) {  // very likely a hundred name
                 let hundredNameMatch = didYouMean(streetName.slice(0, -3), HundredNames, { caseSensitive: false, returnType: didyoumean.ReturnTypeEnums.FIRST_CLOSEST_MATCH, thresholdType: didyoumean.ThresholdTypeEnums.EDIT_DISTANCE, threshold: 0, trimSpaces: true });
                 if (hundredNameMatch === null)
                     candidate.hasInvalidHundredName = true;  // remember that there is an invalid hundred name (for example, "BARUNGA View HD")
@@ -554,7 +554,7 @@ function parseAddress(houseNumber: string, streetName: string, suburbName: strin
             // Determine the associated suburb name.
 
             let associatedSuburbName = suburbNameTokens[index];
-            if (associatedSuburbName === undefined)
+            if (associatedSuburbName === undefined || associatedSuburbName.trim() === "")
                 associatedSuburbName = "";
 
             // Choose the best matching street name (from the known street names).
@@ -910,15 +910,16 @@ async function main() {
     let $ = cheerio.load(body);
 
     let elements = []
-        .concat($("td.uContentListDesc p a[href$='.pdf']").get())
-        .concat($("td.u6ListTD div.u6ListItem a[href$='.pdf']").get())
-        .concat($("div.unityHtmlArticle p a[href$='.pdf']").get());
+        .concat($("td.uContentListDesc p a").get())
+        .concat($("td.u6ListTD div.u6ListItem a").get())
+        .concat($("div.unityHtmlArticle p a").get());
 
     let pdfUrls: string[] = [];
     for (let element of elements) {
         let pdfUrl = new urlparser.URL(element.attribs.href, DevelopmentApplicationsUrl).href
-        if (!pdfUrls.some(url => url === pdfUrl))
-            pdfUrls.push(pdfUrl);
+        if (pdfUrl.toLowerCase().includes("register") && pdfUrl.toLowerCase().includes(".pdf"))
+            if (!pdfUrls.some(url => url === pdfUrl))
+                pdfUrls.push(pdfUrl);
     }
 
     // Always parse the most recent PDF file and randomly select one other PDF file to parse.
