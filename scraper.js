@@ -348,7 +348,7 @@ function parseAddress(houseNumber, streetName, suburbName) {
     //
     // Unfortunately, the street name is truncated at 30 characters so some of the "ü" characters
     // may be missing.  Also note that there is an ambiguity in some cases as to whether a space
-    // is a delimiter or is just a space that happens to occur within a street name or suffix 
+    // is a delimiter or is just a space that happens to occur within a street name or suffix
     // (such as "Kybunga Top" in "Kybunga Top Road" or "TERRACE SOUTH" in "RAILWAY TERRACE SOUTH").
     //
     // For example,
@@ -503,7 +503,7 @@ function addressComparer(a, b) {
     // Candidate 1: [BARUNGA] [Lake View]   [HD] [Road]
     //             └──────╴Group 1╶──────┘ └─╴Group 2╶─┘
     //     Resulting street names:
-    //         BARUNGA HD      <-- valid hundred name 
+    //         BARUNGA HD      <-- valid hundred name
     //         Lake View Road  <-- valid street name
     if (a.candidate.hasInvalidHundredName && !b.candidate.hasInvalidHundredName)
         return 1;
